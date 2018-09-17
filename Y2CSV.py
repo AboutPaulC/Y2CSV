@@ -4,10 +4,18 @@ from bs4 import SoupStrainer as SS
 import datetime
 import time
 import csv
+import argparse
 
-#  Set search parameters - Yell returns max 250 results
-busType = 'Accountants'
-busLoc = 'North+London'
+#  Get command line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("businesstype", help="Enter the business type you are searching for.")
+parser.add_argument("businesslocation", help="Enter the location of the business you are looking for,"
+											  " if more than one word use '+' to join them together.")
+args = parser.parse_args()
+
+#  Set search parameters from parsed arguments - Yell returns max 250 results
+busType = args.businesstype
+busLoc = args.businesslocation
 
 busData = []
 
@@ -29,7 +37,7 @@ for i in range(1, 11):
 
 	#  parse only the parts of the page listed above
 	soup = BS(page_source, 'html.parser', parse_only=divs)
-
+	print('Collecting data...')
 	#  Loop through retrieved data extracting information - try/except those that dont always have data
 	for each in soup:
 		busName = each.find('span', class_="businessCapsule--name").text
@@ -88,10 +96,6 @@ for i in range(1, 11):
 	#  Close browser window
 	driver.close()
 
-#  Print list and confirm number of entries
-print(busData)
-print(busData.__len__())
-
 #  Create file name for CSV
 filename = str(datetime.date.today()) + busType + busLoc + '.csv'
 
@@ -102,3 +106,5 @@ with open(filename, 'w') as f:
 		row = (busData[i]['busName'], busData[i]['busAddr'], busData[i]['busNo'])
 		print(row)
 		writer.writerow(row)
+
+print('Results written to: {}'.format(filename))
